@@ -129,7 +129,7 @@ async function skipTraceLeads(leadIds) {
     form.append('state_column', 'state');
     form.append('first_name_column', 'first_name');
     form.append('last_name_column', 'last_name');
-    form.append('trace_type', 'custom');
+    form.append('trace_type', 'normal');
     form.append('mail_address_column', 'address');
     form.append('mail_city_column', 'city');
     form.append('mail_state_column', 'state');
@@ -276,6 +276,35 @@ app.post('/api/buyers', (req, res) => {
 
 // Deals
 app.get('/api/deals', (req, res) => res.json(db.prepare('SELECT * FROM deals ORDER BY created_at DESC').all()));
+
+
+// Clear all leads
+app.delete('/api/leads/all', (req, res) => {
+  db.prepare('DELETE FROM conversations').run();
+  db.prepare('DELETE FROM leads').run();
+  res.json({ success: true });
+});
+
+// Import Tracerfy results CSV
+app.post('/api/leads/import-tracerfy', async (req, res) => {
+  try {
+    const { results } = req.body; // array of {address, name, phone, email, dnc}
+    let updated = 0;
+    for (const r of results) {
+      if (!r.address) continue;
+      const addrPart = r.address.split(',')[0].trim();
+      const lead = db.prepare("SELECT id FROM leads WHERE address LIKE ?").get(`%${addrPart}%`);
+      if (lead) {
+        db.prepare('UPDATE leads SET name=COALESCE(NULLIF(?,''),name), phone=COALESCE(NULLIF(?,''),phone), email=COALESCE(NULLIF(?,''),email), dnc=?, skiptrace_done=1, updated_at=CURRENT_TIMESTAMP WHERE id=?')
+          .run(r.name||'', r.phone||'', r.email||'', r.dnc?1:0, lead.id);
+        updated++;
+      }
+    }
+    res.json({ updated });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 
 // Calculator
 app.post('/api/calculate', (req, res) => res.json(calcOffer(req.body.sqft, req.body.condition, req.body.arv)));
