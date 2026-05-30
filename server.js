@@ -188,5 +188,75 @@ app.post('/api/scan', (req, res) => {
   res.json({ message: 'Use CSV upload to add leads' });
 });
 
+
+// ─── TRACERFY SKIP TRACE ──────────────────────────────────────────
+async function skipTraceLead(leadId, address, city, state) {
+  const apiKey = process.env.TRACERFI_API_KEY;
+  if (!apiKey) return;
+  try {
+    const response = await axios.post('https://tracerfy.com/api/trace/', 
+      { addresses: [{ address, city, state: state || 'FL' }] },
+      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
+    );
+    const result = response.data;
+    if (result && result.results && result.results[0]) {
+      const data = result.results[0];
+      const phone = data.phones && data.phones[0] ? data.phones[0].number : null;
+      const name = data.owner_name || null;
+      if (phone || name) {
+        db.prepare('UPDATE leads SET phone=COALESCE(?,phone), name=COALESCE(?,name), updated_at=CURRENT_TIMESTAMP WHERE id=?').run(phone, name, leadId);
+        console.log(`Skip traced lead ${leadId}: ${name} - ${phone}`);
+      }
+    }
+  } catch(e) {
+    console.log('Tracerfy error:', e.message);
+  }
+}
+
+// ─── TRACERFY WEBHOOK ─────────────────────────────────────────────
+app.post('/api/tracerfy/webhook', async (req, res) => {
+  try {
+    const data = req.body;
+    console.log('Tracerfy webhook received:', JSON.stringify(data).substring(0, 200));
+    
+    // Handle webhook results
+    const results = data.results || data.records || data.data || [];
+    for (const record of results) {
+      const address = record.address || record.property_address || '';
+      const phone = record.phones?.[0]?.number || record.phone || record.mobile || '';
+      const name = record.owner_name || record.name || '';
+      const email = record.emails?.[0] || record.email || '';
+      
+      if (address) {
+        const lead = db.prepare('SELECT id FROM leads WHERE address LIKE ?').get(`%${address.split(',')[0]}%`);
+        if (lead) {
+          db.prepare('UPDATE leads SET phone=COALESCE(NULLIF(?,''),phone), name=COALESCE(NULLIF(?,''),name), updated_at=CURRENT_TIMESTAMP WHERE id=?').run(phone, name, lead.id);
+          console.log(`Updated lead ${lead.id} with skip trace data`);
+        }
+      }
+    }
+    res.json({ success: true });
+  } catch(e) {
+    console.log('Webhook error:', e.message);
+    res.json({ success: false });
+  }
+});
+
+
+// Auto skip trace all leads missing phone numbers on startup
+async function skipTraceAllPending() {
+  const pending = db.prepare("SELECT * FROM leads WHERE (phone IS NULL OR phone = '') AND status != 'dead'").all();
+  console.log(`Auto skip tracing ${pending.length} leads...`);
+  for (const lead of pending) {
+    await skipTraceLead(lead.id, lead.address, lead.city, lead.state);
+    await new Promise(r => setTimeout(r, 500)); // small delay between calls
+  }
+}
+
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`DealFlow AI running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`DealFlow AI running on port ${PORT}`);
+  setTimeout(skipTraceAllPending, 3000); // run skip trace 3 seconds after startup
+});
+
+// This line already exists - adding webhook and tracerfy integration below the existing routes
