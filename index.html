@@ -5,117 +5,102 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DealFlow AI</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
-  :root {
-    --bg: #0a0a0f; --surface: #111118; --surface2: #1a1a24;
-    --border: #2a2a3a; --accent: #00ff88; --accent2: #0088ff;
-    --danger: #ff4466; --warn: #ffaa00; --text: #e8e8f0;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'DM Mono',monospace; background:var(--bg); color:var(--text); min-height:100vh; }
-  .sidebar { position:fixed; left:0; top:0; bottom:0; width:220px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:100; }
-  .logo { padding:24px 20px; border-bottom:1px solid var(--border); }
-  .logo-text { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:var(--accent); }
-  .logo-sub { font-size:10px; color:#44445a; letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
-  .nav { padding:16px 0; flex:1; }
-  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 20px; cursor:pointer; font-size:12px; color:#44445a; transition:all 0.2s; border-left:2px solid transparent; }
-  .nav-item:hover { color:var(--text); background:var(--surface2); }
-  .nav-item.active { color:var(--accent); border-left-color:var(--accent); background:rgba(0,255,136,0.05); }
-  .status-pill { margin:16px; padding:10px 14px; background:rgba(0,255,136,0.08); border:1px solid rgba(0,255,136,0.2); border-radius:8px; font-size:11px; }
-  .status-dot { display:inline-block; width:6px; height:6px; background:var(--accent); border-radius:50%; margin-right:6px; animation:pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .main { margin-left:220px; min-height:100vh; }
-  .topbar { padding:16px 28px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--surface); position:sticky; top:0; z-index:50; }
-  .page-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; }
-  .btn { padding:8px 16px; border-radius:6px; border:none; cursor:pointer; font-family:'DM Mono',monospace; font-size:12px; transition:all 0.2s; }
-  .btn-primary { background:var(--accent); color:#000; }
-  .btn-primary:hover { background:#00dd77; }
-  .btn-ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
-  .btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
-  .content { padding:28px; }
-  .stats-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:28px; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; transition:border-color 0.2s; }
-  .stat-card:hover { border-color:var(--accent); }
-  .stat-label { font-size:10px; color:#44445a; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
-  .stat-value { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
-  .stat-value.green { color:var(--accent); }
-  .stat-value.blue { color:var(--accent2); }
-  .stat-value.orange { color:var(--warn); }
-  .stat-change { font-size:10px; color:var(--accent); margin-top:4px; }
-  .pipeline-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:28px; }
-  .pipeline-col { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-  .pipeline-header { padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:11px; font-weight:500; }
-  .pipeline-count { background:var(--surface2); border-radius:10px; padding:2px 8px; font-size:10px; }
-  .pipeline-body { padding:10px; display:flex; flex-direction:column; gap:8px; min-height:180px; }
-  .lead-card { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; cursor:pointer; transition:all 0.2s; font-size:11px; }
-  .lead-card:hover { border-color:var(--accent); transform:translateY(-1px); }
-  .lead-name { font-family:'Syne',sans-serif; font-weight:600; font-size:12px; margin-bottom:4px; }
-  .lead-address { color:#44445a; font-size:10px; margin-bottom:6px; }
-  .tag { padding:2px 6px; border-radius:4px; font-size:9px; }
-  .tag-green { background:rgba(0,255,136,0.1); color:var(--accent); }
-  .tag-blue { background:rgba(0,136,255,0.1); color:var(--accent2); }
-  .tag-orange { background:rgba(255,170,0,0.1); color:var(--warn); }
-  .tag-red { background:rgba(255,68,102,0.1); color:var(--danger); }
-  .two-col { display:grid; grid-template-columns:1fr 360px; gap:20px; }
-  .activity-feed { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-  .section-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-family:'Syne',sans-serif; font-size:14px; font-weight:700; }
-  .activity-item { padding:12px 18px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:flex-start; font-size:11px; }
-  .activity-icon { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
-  .activity-title { color:var(--text); margin-bottom:2px; line-height:1.4; }
-  .activity-time { color:#44445a; font-size:10px; }
-  .page { display:none; }
-  .page.active { display:block; }
-  .chat-wrapper { display:grid; grid-template-columns:280px 1fr; height:calc(100vh - 120px); background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-  .chat-sidebar { border-right:1px solid var(--border); overflow-y:auto; }
-  .chat-main { display:flex; flex-direction:column; }
-  .chat-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
-  .chat-messages { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:12px; }
-  .msg { max-width:75%; display:flex; flex-direction:column; gap:3px; }
-  .msg.ai { align-self:flex-start; }
-  .msg.seller { align-self:flex-end; }
-  .msg-bubble { padding:10px 14px; border-radius:12px; font-size:12px; line-height:1.5; }
-  .msg.ai .msg-bubble { background:var(--surface2); border:1px solid var(--border); border-bottom-left-radius:3px; }
-  .msg.seller .msg-bubble { background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.2); border-bottom-right-radius:3px; }
-  .msg-meta { font-size:9px; color:#44445a; padding:0 4px; }
-  .msg.seller .msg-meta { text-align:right; }
-  .conv-item { padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.2s; font-size:11px; }
-  .conv-item:hover { background:var(--surface2); }
-  .conv-item.active { background:rgba(0,255,136,0.05); border-left:2px solid var(--accent); }
-  .conv-name { font-family:'Syne',sans-serif; font-weight:600; font-size:12px; margin-bottom:3px; display:flex; justify-content:space-between; }
-  .conv-preview { color:#44445a; font-size:10px; line-height:1.4; }
-  .conv-badge { background:var(--accent); color:#000; border-radius:10px; padding:1px 6px; font-size:9px; }
-  .data-table { width:100%; border-collapse:collapse; font-size:11px; }
-  .data-table th { padding:10px 14px; text-align:left; color:#44445a; font-size:10px; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--border); }
-  .data-table td { padding:12px 14px; border-bottom:1px solid var(--border); }
-  .data-table tr:hover td { background:var(--surface2); }
-  .section-badge { display:inline-flex; align-items:center; gap:6px; font-size:10px; padding:3px 10px; border-radius:20px; }
-  .badge-green { background:rgba(0,255,136,0.1); color:var(--accent); border:1px solid rgba(0,255,136,0.2); }
-  .badge-blue { background:rgba(0,136,255,0.1); color:var(--accent2); border:1px solid rgba(0,136,255,0.2); }
-  .badge-orange { background:rgba(255,170,0,0.1); color:var(--warn); border:1px solid rgba(255,170,0,0.2); }
-  .notif-bar { position:fixed; top:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:8px; }
-  .notif { background:var(--surface2); border:1px solid var(--accent); border-radius:8px; padding:12px 16px; font-size:11px; max-width:280px; animation:slideIn 0.3s ease; }
-  @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
-  .notif-title { color:var(--accent); font-weight:600; margin-bottom:3px; font-family:'Syne',sans-serif; }
-  .notif-body { color:#888; }
-  .input-field { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:8px 12px; color:var(--text); font-family:'DM Mono',monospace; font-size:12px; outline:none; }
-  .input-field:focus { border-color:var(--accent); }
-  .calc-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:20px; }
-  .calc-body { padding:18px; }
-  .calc-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:12px; }
-  .calc-row:last-child { border-bottom:none; }
-  .calc-label { color:#44445a; }
-  .calc-val { font-family:'Syne',sans-serif; font-weight:700; }
-  .calc-val.accent { color:var(--accent); font-size:16px; }
-  .radio-group { display:flex; gap:8px; margin-bottom:16px; }
-  .radio-btn { flex:1; padding:8px; border:1px solid var(--border); border-radius:6px; text-align:center; cursor:pointer; font-size:11px; background:var(--surface2); transition:all 0.2s; }
-  .radio-btn.selected { border-color:var(--accent); background:rgba(0,255,136,0.08); color:var(--accent); }
-  .scanning-indicator { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--accent); }
-  .scan-dot { width:6px; height:6px; background:var(--accent); border-radius:50%; animation:scanPulse 1.5s infinite; }
-  .scan-dot:nth-child(2){animation-delay:0.3s} .scan-dot:nth-child(3){animation-delay:0.6s}
-  @keyframes scanPulse { 0%,100%{opacity:0.2;transform:scale(0.8)} 50%{opacity:1;transform:scale(1)} }
-  ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-  .empty-state { padding:40px; text-align:center; color:#44445a; font-size:12px; }
-  .chat-input-area { padding:14px 18px; border-top:1px solid var(--border); display:flex; gap:8px; }
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+:root{--bg:#0a0a0f;--surface:#111118;--surface2:#1a1a24;--border:#2a2a3a;--accent:#00ff88;--accent2:#0088ff;--danger:#ff4466;--warn:#ffaa00;--text:#e8e8f0;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:100;}
+.logo{padding:24px 20px;border-bottom:1px solid var(--border);}
+.logo-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent);}
+.logo-sub{font-size:10px;color:#44445a;letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.nav{padding:16px 0;flex:1;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:12px;color:#44445a;transition:all 0.2s;border-left:2px solid transparent;}
+.nav-item:hover{color:var(--text);background:var(--surface2);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,255,136,0.05);}
+.main{margin-left:220px;min-height:100vh;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;}
+.btn{padding:8px 16px;border-radius:6px;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;transition:all 0.2s;}
+.btn-primary{background:var(--accent);color:#000;font-weight:600;}
+.btn-primary:hover{background:#00dd77;}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-warn{background:var(--warn);color:#000;font-weight:600;}
+.btn-danger{background:var(--danger);color:#fff;font-weight:600;}
+.content{padding:28px;}
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;}
+.stat-label{font-size:10px;color:#44445a;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.stat-value{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;}
+.stat-value.green{color:var(--accent);}
+.stat-value.blue{color:var(--accent2);}
+.stat-value.orange{color:var(--warn);}
+.pipeline-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:28px;}
+.pipeline-col{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.pipeline-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;}
+.pipeline-count{background:var(--surface2);border-radius:10px;padding:2px 8px;font-size:10px;}
+.pipeline-body{padding:10px;display:flex;flex-direction:column;gap:8px;min-height:150px;}
+.lead-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all 0.2s;font-size:11px;}
+.lead-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+.lead-name{font-family:'Syne',sans-serif;font-weight:600;font-size:12px;margin-bottom:2px;}
+.lead-address{color:#44445a;font-size:10px;margin-bottom:4px;}
+.lead-phone{font-size:10px;color:var(--accent);}
+.tag{padding:2px 6px;border-radius:4px;font-size:9px;margin:1px;}
+.tag-green{background:rgba(0,255,136,0.1);color:var(--accent);}
+.tag-blue{background:rgba(0,136,255,0.1);color:var(--accent2);}
+.tag-orange{background:rgba(255,170,0,0.1);color:var(--warn);}
+.tag-red{background:rgba(255,68,102,0.1);color:var(--danger);}
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;}
+.section-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.activity-item{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;gap:12px;font-size:11px;}
+.page{display:none;}
+.page.active{display:block;}
+.chat-wrapper{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 120px);background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.chat-sidebar{border-right:1px solid var(--border);overflow-y:auto;}
+.chat-main{display:flex;flex-direction:column;}
+.chat-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.chat-messages{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px;}
+.msg{max-width:75%;display:flex;flex-direction:column;gap:3px;}
+.msg.ai{align-self:flex-start;}
+.msg.seller{align-self:flex-end;}
+.msg-bubble{padding:10px 14px;border-radius:12px;font-size:12px;line-height:1.5;}
+.msg.ai .msg-bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:3px;}
+.msg.seller .msg-bubble{background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.2);border-bottom-right-radius:3px;}
+.msg-meta{font-size:9px;color:#44445a;padding:0 4px;}
+.msg.seller .msg-meta{text-align:right;}
+.conv-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.2s;font-size:11px;}
+.conv-item:hover{background:var(--surface2);}
+.conv-item.active{background:rgba(0,255,136,0.05);border-left:2px solid var(--accent);}
+.conv-name{font-family:'Syne',sans-serif;font-weight:600;font-size:12px;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;}
+.conv-preview{color:#44445a;font-size:10px;}
+.conv-badge{background:var(--accent);color:#000;border-radius:10px;padding:1px 6px;font-size:9px;}
+.data-table{width:100%;border-collapse:collapse;font-size:11px;}
+.data-table th{padding:10px 14px;text-align:left;color:#44445a;font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+.data-table td{padding:12px 14px;border-bottom:1px solid var(--border);}
+.data-table tr:hover td{background:var(--surface2);}
+.input-field{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;}
+.input-field:focus{border-color:var(--accent);}
+.calc-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.calc-row:last-child{border-bottom:none;}
+.calc-label{color:#44445a;}
+.calc-val{font-family:'Syne',sans-serif;font-weight:700;}
+.calc-val.accent{color:var(--accent);font-size:16px;}
+.radio-group{display:flex;gap:8px;margin-bottom:16px;}
+.radio-btn{flex:1;padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center;cursor:pointer;font-size:11px;background:var(--surface2);transition:all 0.2s;}
+.radio-btn.selected{border-color:var(--accent);background:rgba(0,255,136,0.08);color:var(--accent);}
+.notif-bar{position:fixed;top:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.notif{background:var(--surface2);border:1px solid var(--accent);border-radius:8px;padding:12px 16px;font-size:11px;max-width:300px;animation:slideIn 0.3s ease;}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.notif-title{color:var(--accent);font-weight:600;margin-bottom:3px;font-family:'Syne',sans-serif;}
+.notif-body{color:#888;}
+.empty-state{padding:40px;text-align:center;color:#44445a;font-size:12px;}
+.chat-input-area{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.upload-zone{background:var(--surface);border:2px dashed var(--border);border-radius:10px;padding:40px;text-align:center;margin-bottom:16px;transition:border-color 0.2s;}
+.upload-zone:hover{border-color:var(--accent);}
+.skiptrace-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.dnc-badge{background:rgba(255,68,102,0.1);color:var(--danger);border:1px solid rgba(255,68,102,0.2);border-radius:4px;padding:2px 6px;font-size:9px;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 </style>
 </head>
 <body>
@@ -126,16 +111,16 @@
     <div class="logo-sub">Wholesale Automation</div>
   </div>
   <nav class="nav">
-    <div class="nav-item active" onclick="showPage('dashboard')"><span>⚡</span> Dashboard</div>
-    <div class="nav-item" onclick="showPage('upload')"><span>📤</span> Upload Leads</div>
-    <div class="nav-item" onclick="showPage('conversations')"><span>💬</span> Conversations</div>
-    <div class="nav-item" onclick="showPage('buyers')"><span>💰</span> Cash Buyers</div>
-    <div class="nav-item" onclick="showPage('deals')"><span>📋</span> Deals</div>
-    <div class="nav-item" onclick="showPage('calculator')"><span>🧮</span> Calculator</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)">⚡ Dashboard</div>
+    <div class="nav-item" onclick="showPage('upload',this)">📤 Upload Leads</div>
+    <div class="nav-item" onclick="showPage('conversations',this)">💬 Conversations</div>
+    <div class="nav-item" onclick="showPage('buyers',this)">💰 Cash Buyers</div>
+    <div class="nav-item" onclick="showPage('deals',this)">📋 Deals</div>
+    <div class="nav-item" onclick="showPage('calculator',this)">🧮 Calculator</div>
   </nav>
-  <div class="status-pill">
-    <span class="status-dot"></span>
-    <span style="font-size:11px;color:#888;">AI Engine Active</span>
+  <div style="margin:16px;padding:10px 14px;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.2);border-radius:8px;font-size:11px;">
+    <span style="display:inline-block;width:6px;height:6px;background:var(--accent);border-radius:50%;margin-right:6px;animation:pulse 2s infinite;"></span>
+    <span style="color:#888;">AI Engine Active</span>
     <div style="font-size:10px;color:#44445a;margin-top:4px;">Florida Markets</div>
   </div>
 </div>
@@ -145,12 +130,8 @@
 <div class="main">
   <div class="topbar">
     <div class="page-title" id="pageTitle">Dashboard</div>
-    <div style="display:flex;gap:10px;align-items:center;">
-      <div class="scanning-indicator">
-        <div class="scan-dot"></div><div class="scan-dot"></div><div class="scan-dot"></div>
-        <span>Scanning Reddit</span>
-      </div>
-      <button class="btn btn-ghost" onclick="triggerScan()">Scan Now</button>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="loadDashboard()">Refresh</button>
     </div>
   </div>
 
@@ -159,26 +140,26 @@
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">Leads Today</div><div class="stat-value blue" id="s-leads">—</div></div>
-        <div class="stat-card"><div class="stat-label">Active Convos</div><div class="stat-value" id="s-convos">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-value blue" id="s-total">—</div></div>
+        <div class="stat-card"><div class="stat-label">Qualifying</div><div class="stat-value" id="s-convos">—</div></div>
         <div class="stat-card"><div class="stat-label">Hot Leads</div><div class="stat-value orange" id="s-hot">—</div></div>
         <div class="stat-card"><div class="stat-label">Under Contract</div><div class="stat-value green" id="s-contract">—</div></div>
-        <div class="stat-card"><div class="stat-label">Total Earned</div><div class="stat-value green" id="s-earned">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Earned</div><div class="stat-value green" id="s-earned">$0</div></div>
       </div>
 
       <div style="margin-bottom:10px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#44445a;letter-spacing:1px;text-transform:uppercase;">Live Pipeline</div>
       <div class="pipeline-grid">
         <div class="pipeline-col">
           <div class="pipeline-header" style="color:var(--accent2);">📡 New <span class="pipeline-count" id="c-new">0</span></div>
-          <div class="pipeline-body" id="col-new"><div class="empty-state">Scanning...</div></div>
+          <div class="pipeline-body" id="col-new"><div class="empty-state">Upload leads to start</div></div>
         </div>
         <div class="pipeline-col">
           <div class="pipeline-header">💬 Qualifying <span class="pipeline-count" id="c-qualifying">0</span></div>
-          <div class="pipeline-body" id="col-qualifying"><div class="empty-state">No leads yet</div></div>
+          <div class="pipeline-body" id="col-qualifying"><div class="empty-state">None yet</div></div>
         </div>
         <div class="pipeline-col">
           <div class="pipeline-header" style="color:var(--warn);">🔥 Hot <span class="pipeline-count" id="c-hot">0</span></div>
-          <div class="pipeline-body" id="col-hot"><div class="empty-state">No hot leads</div></div>
+          <div class="pipeline-body" id="col-hot"><div class="empty-state">None yet</div></div>
         </div>
         <div class="pipeline-col">
           <div class="pipeline-header" style="color:var(--accent);">📝 Contract <span class="pipeline-count" id="c-contract">0</span></div>
@@ -190,14 +171,53 @@
         </div>
       </div>
 
-      <div class="two-col">
-        <div class="activity-feed">
-          <div class="section-header">AI Activity Feed <span class="section-badge badge-green">● Live</span></div>
-          <div id="activityFeed"><div class="empty-state">Activity will appear here as AI works</div></div>
+      <div class="section-card">
+        <div class="section-header">AI Activity Feed <span style="font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(0,255,136,0.1);color:var(--accent);border:1px solid rgba(0,255,136,0.2);">● Live</span></div>
+        <div id="activityFeed"><div class="empty-state">Activity will appear here</div></div>
+      </div>
+    </div>
+
+    <!-- UPLOAD LEADS -->
+    <div class="page" id="page-upload">
+      <div style="max-width:700px;">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">Upload & Skip Trace Leads</div>
+        <div style="font-size:11px;color:#44445a;margin-bottom:24px;">Upload your Propwire CSV. Skip trace and DNC scrub with one click.</div>
+
+        <!-- STEP 1 -->
+        <div class="section-card" style="margin-bottom:16px;">
+          <div class="section-header">Step 1 — Upload Propwire CSV</div>
+          <div style="padding:20px;">
+            <div class="upload-zone" onclick="document.getElementById('csvFile').click()">
+              <div style="font-size:32px;margin-bottom:8px;">📂</div>
+              <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:6px;">Click to choose CSV file</div>
+              <div style="font-size:11px;color:#44445a;">Propwire export with Address, City, State, Zip columns</div>
+              <input type="file" id="csvFile" accept=".csv" style="display:none;" onchange="handleCSV()"/>
+            </div>
+            <div id="uploadStatus" style="font-size:12px;color:var(--accent);min-height:20px;text-align:center;"></div>
+          </div>
         </div>
-        <div class="activity-feed">
-          <div class="section-header">🔥 Needs Attention</div>
-          <div id="hotLeadsList"><div class="empty-state">No hot leads yet</div></div>
+
+        <!-- STEP 2 -->
+        <div class="section-card" id="skiptraceSection" style="display:none;">
+          <div class="section-header">Step 2 — Skip Trace & DNC Scrub</div>
+          <div style="padding:20px;">
+            <div style="font-size:12px;color:#888;margin-bottom:16px;" id="skiptraceInfo">Leads imported. Click below to skip trace all leads through Tracerfy and scrub against DNC list.</div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn btn-primary" style="flex:1;padding:14px;" onclick="runSkipTrace()">🔍 Skip Trace All Leads + DNC Scrub</button>
+            </div>
+            <div id="skiptraceStatus" style="font-size:11px;color:var(--accent);margin-top:12px;min-height:20px;text-align:center;"></div>
+          </div>
+        </div>
+
+        <!-- IMPORTED LEADS TABLE -->
+        <div class="section-card" id="importedLeadsSection" style="display:none;">
+          <div class="section-header">Imported Leads <span id="importedCount" style="font-size:11px;color:#44445a;"></span></div>
+          <div style="max-height:400px;overflow-y:auto;">
+            <table class="data-table">
+              <thead><tr><th>Address</th><th>City</th><th>Name</th><th>Phone</th><th>DNC</th><th>Status</th></tr></thead>
+              <tbody id="importedLeadsTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -206,35 +226,35 @@
     <div class="page" id="page-conversations">
       <div class="chat-wrapper">
         <div class="chat-sidebar">
-          <div style="padding:12px;border-bottom:1px solid var(--border);font-size:10px;color:#44445a;letter-spacing:1px;text-transform:uppercase;">All Conversations</div>
-          <div id="convList"><div class="empty-state">No conversations yet</div></div>
+          <div style="padding:12px;border-bottom:1px solid var(--border);font-size:10px;color:#44445a;letter-spacing:1px;text-transform:uppercase;">All Leads</div>
+          <div id="convList"><div class="empty-state">No leads yet</div></div>
         </div>
         <div class="chat-main">
           <div class="chat-header" id="chatHeader">
-            <div style="color:#44445a;font-size:12px;">Select a conversation</div>
+            <div style="color:#44445a;font-size:12px;">Select a lead</div>
           </div>
           <div class="chat-messages" id="chatMessages">
             <div class="empty-state">Select a lead to view conversation</div>
           </div>
           <div class="chat-input-area">
-            <input class="input-field" id="replyInput" placeholder="Type seller reply to test AI response..." />
-            <button class="btn btn-primary" onclick="sendTestReply()">Send</button>
+            <input class="input-field" id="replyInput" placeholder="Simulate seller reply..." />
+            <button class="btn btn-primary" onclick="sendReply()">Send</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- BUYERS -->
+    <!-- CASH BUYERS -->
     <div class="page" id="page-buyers">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Cash Buyer Database</div></div>
-        <button class="btn btn-primary" onclick="showAddBuyer()">+ Add Buyer</button>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;">Cash Buyer Database</div>
+        <button class="btn btn-primary" onclick="addBuyer()">+ Add Buyer</button>
       </div>
-      <div class="activity-feed">
-        <div class="section-header">Buyers <span class="section-badge badge-green" id="buyerCount">0 Total</span></div>
+      <div class="section-card">
+        <div class="section-header">Buyers <span id="buyerCount" style="font-size:11px;color:#44445a;"></span></div>
         <table class="data-table">
           <thead><tr><th>Name</th><th>Phone</th><th>Markets</th><th>Price Range</th><th>Close Days</th><th>Deals</th></tr></thead>
-          <tbody id="buyersTable"><tr><td colspan="6" style="text-align:center;color:#44445a;padding:30px;">No buyers yet — add your first cash buyer</td></tr></tbody>
+          <tbody id="buyersTable"><tr><td colspan="6" style="text-align:center;color:#44445a;padding:30px;">No buyers yet</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -247,7 +267,7 @@
         <div class="stat-card"><div class="stat-label">Total Earned</div><div class="stat-value green" id="d-earned">$0</div></div>
         <div class="stat-card"><div class="stat-label">In Pipeline</div><div class="stat-value orange" id="d-pipeline">0</div></div>
       </div>
-      <div class="activity-feed">
+      <div class="section-card">
         <div class="section-header">All Deals</div>
         <table class="data-table">
           <thead><tr><th>Property</th><th>ARV</th><th>Purchase Price</th><th>Wholesale Fee</th><th>Status</th></tr></thead>
@@ -256,50 +276,25 @@
       </div>
     </div>
 
-    <!-- UPLOAD LEADS -->
-    <div class="page" id="page-upload">
-      <div style="max-width:600px;">
-        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">Upload Leads from Propwire</div>
-        <div style="font-size:11px;color:#44445a;margin-bottom:24px;">Export your Propwire list as CSV and upload it here. AI will start working through them automatically.</div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:20px;">
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:16px;">How to export from Propwire:</div>
-          <div style="font-size:11px;color:#888;line-height:2;">
-            1. Go to Propwire and set your filters (distressed, pre-foreclosure, etc.)<br>
-            2. Select your leads<br>
-            3. Click Export → CSV<br>
-            4. Upload that CSV file below
-          </div>
-        </div>
-        <div style="background:var(--surface);border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;margin-bottom:16px;">
-          <div style="font-size:24px;margin-bottom:8px;">📂</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:8px;">Drop your CSV here</div>
-          <div style="font-size:11px;color:#44445a;margin-bottom:16px;">Supports any CSV with address, name, phone columns</div>
-          <input type="file" id="csvFile" accept=".csv" style="display:none;" onchange="handleCSV()"/>
-          <button class="btn btn-primary" onclick="document.getElementById('csvFile').click()" style="padding:12px 24px;">Choose CSV File</button>
-        </div>
-        <div id="uploadStatus" style="font-size:12px;color:var(--accent);padding:10px;min-height:20px;"></div>
-      </div>
-    </div>
-
     <!-- CALCULATOR -->
     <div class="page" id="page-calculator">
       <div style="max-width:560px;">
         <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px;">Deal Calculator</div>
-        <div class="calc-card">
+        <div class="section-card">
           <div class="section-header">Property Details</div>
-          <div class="calc-body">
+          <div style="padding:18px;">
             <div style="margin-bottom:14px;">
               <div style="font-size:10px;color:#44445a;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;">Property Address</div>
-              <input class="input-field" type="text" id="cAddress" placeholder="123 Main St, Tampa, FL" />
+              <input class="input-field" type="text" id="cAddress" placeholder="123 Main St, Tampa, FL" oninput="calc()"/>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
               <div>
                 <div style="font-size:10px;color:#44445a;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;">ARV</div>
-                <input class="input-field" type="number" id="cARV" placeholder="250000" oninput="calc()" />
+                <input class="input-field" type="number" id="cARV" placeholder="250000" oninput="calc()"/>
               </div>
               <div>
                 <div style="font-size:10px;color:#44445a;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;">Square Footage</div>
-                <input class="input-field" type="number" id="cSqft" placeholder="1500" oninput="calc()" />
+                <input class="input-field" type="number" id="cSqft" placeholder="1500" oninput="calc()"/>
               </div>
             </div>
             <div style="font-size:10px;color:#44445a;margin-bottom:8px;letter-spacing:1px;text-transform:uppercase;">Condition</div>
@@ -309,14 +304,14 @@
             </div>
           </div>
         </div>
-        <div class="calc-card">
+        <div class="section-card">
           <div class="section-header">Your Offer</div>
-          <div class="calc-body">
+          <div style="padding:18px;">
             <div class="calc-row"><span class="calc-label">Property</span><span class="calc-val" id="r-address" style="font-size:11px;color:#888;">Enter address above</span></div>
             <div class="calc-row"><span class="calc-label">ARV</span><span class="calc-val" id="r-arv">—</span></div>
             <div class="calc-row"><span class="calc-label">× 70% Rule</span><span class="calc-val" id="r-70">—</span></div>
             <div class="calc-row"><span class="calc-label">− Rehab Cost</span><span class="calc-val" id="r-rehab">—</span></div>
-            <div class="calc-row"><span class="calc-label">− Wholesale Fee ($20K)</span><span class="calc-val" id="r-fee">$20,000</span></div>
+            <div class="calc-row"><span class="calc-label">− Wholesale Fee</span><span class="calc-val">$20,000</span></div>
             <div class="calc-row"><span class="calc-label" style="font-weight:700;color:var(--text)">First Offer</span><span class="calc-val accent" id="r-offer">—</span></div>
             <div class="calc-row"><span class="calc-label">Walk Away Below</span><span class="calc-val" id="r-min" style="color:var(--danger)">—</span></div>
           </div>
@@ -328,332 +323,330 @@
 </div>
 
 <script>
-  // ─── CONFIG ───────────────────────────────────────────────────────
-  // Change this to your Railway URL after deployment
-  const API_BASE = window.location.hostname === 'localhost' 
-    ? 'http://localhost:3000' 
-    : 'https://dealflow-ai-production-51fa.up.railway.app';
+const API = 'https://dealflow-ai-production-51fa.up.railway.app';
+let currentLeadId = null;
+let calcCond = 'livable';
+let importedLeadIds = [];
 
-  let currentLeadId = null;
-  let calcCondition = 'livable';
+function showNotif(title, body) {
+  const bar = document.getElementById('notifBar');
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.innerHTML = `<div class="notif-title">${title}</div><div class="notif-body">${body}</div>`;
+  bar.appendChild(n);
+  setTimeout(() => n.remove(), 5000);
+}
 
-  // ─── NOTIFICATIONS ────────────────────────────────────────────────
-  function showNotif(title, body) {
-    const bar = document.getElementById('notifBar');
-    const n = document.createElement('div');
-    n.className = 'notif';
-    n.innerHTML = `<div class="notif-title">${title}</div><div class="notif-body">${body}</div>`;
-    bar.appendChild(n);
-    setTimeout(() => n.remove(), 5000);
-  }
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {dashboard:'Dashboard',upload:'Upload Leads',conversations:'Conversations',buyers:'Cash Buyers',deals:'Deal Tracker',calculator:'Calculator'};
+  document.getElementById('pageTitle').textContent = titles[id];
+  if (id === 'conversations') loadConversations();
+  if (id === 'buyers') loadBuyers();
+  if (id === 'deals') loadDeals();
+  if (id === 'dashboard') loadDashboard();
+}
 
-  // ─── PAGE NAV ─────────────────────────────────────────────────────
-  function showPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + id).classList.add('active');
-    const titles = {dashboard:'Dashboard',conversations:'Conversations',buyers:'Cash Buyers',deals:'Deal Tracker',calculator:'Calculator'};
-    document.getElementById('pageTitle').textContent = titles[id];
-    event.currentTarget.classList.add('active');
-    if (id === 'conversations') loadConversations();
-    if (id === 'buyers') loadBuyers();
-    if (id === 'deals') loadDeals();
-  }
+async function loadDashboard() {
+  try {
+    const [stats, leads, activity] = await Promise.all([
+      fetch(`${API}/api/stats`).then(r => r.json()),
+      fetch(`${API}/api/leads`).then(r => r.json()),
+      fetch(`${API}/api/activity`).then(r => r.json())
+    ]);
 
-  // ─── DASHBOARD ────────────────────────────────────────────────────
-  async function loadDashboard() {
-    try {
-      const [stats, leads, activity] = await Promise.all([
-        fetch(`${API_BASE}/api/stats`).then(r => r.json()),
-        fetch(`${API_BASE}/api/leads`).then(r => r.json()),
-        fetch(`${API_BASE}/api/activity`).then(r => r.json())
-      ]);
+    document.getElementById('s-total').textContent = stats.totalLeads || 0;
+    document.getElementById('s-convos').textContent = stats.activeConvos || 0;
+    document.getElementById('s-hot').textContent = stats.hotLeads || 0;
+    document.getElementById('s-contract').textContent = stats.underContract || 0;
+    document.getElementById('s-earned').textContent = '$' + ((stats.totalEarned || 0)).toLocaleString();
 
-      document.getElementById('s-leads').textContent = stats.leadsToday || 0;
-      document.getElementById('s-convos').textContent = stats.activeConvos || 0;
-      document.getElementById('s-hot').textContent = stats.hotLeads || 0;
-      document.getElementById('s-contract').textContent = stats.underContract || 0;
-      document.getElementById('s-earned').textContent = '$' + ((stats.totalEarned || 0) / 1000).toFixed(0) + 'K';
+    const statuses = ['new','qualifying','hot','under_contract','dead'];
+    const colIds = ['col-new','col-qualifying','col-hot','col-contract','col-dead'];
+    const countIds = ['c-new','c-qualifying','c-hot','c-contract','c-dead'];
 
-      const statuses = ['new', 'qualifying', 'hot', 'under_contract', 'dead'];
-      const colIds = ['col-new', 'col-qualifying', 'col-hot', 'col-contract', 'col-dead'];
-      const countIds = ['c-new', 'c-qualifying', 'c-hot', 'c-contract', 'c-dead'];
-
-      statuses.forEach((status, i) => {
-        const filtered = leads.filter(l => l.status === status);
-        document.getElementById(countIds[i]).textContent = filtered.length;
-        const col = document.getElementById(colIds[i]);
-        if (filtered.length === 0) {
-          col.innerHTML = '<div class="empty-state">None</div>';
-        } else {
-          col.innerHTML = filtered.slice(0, 5).map(l => `
-            <div class="lead-card" onclick="openLead(${l.id})">
-              <div class="lead-name">${l.name || 'Unknown'}</div>
-              <div class="lead-address">${l.address}</div>
-              <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                <span class="tag tag-blue">${l.source || 'Reddit'}</span>
-                ${l.condition ? `<span class="tag tag-orange">${l.condition}</span>` : ''}
-              </div>
-              ${l.offer_amount ? `<div style="margin-top:6px;font-size:11px;color:var(--accent)">Offer: $${l.offer_amount.toLocaleString()}</div>` : ''}
-            </div>
-          `).join('');
-        }
-      });
-
-      // Activity feed
-      const feed = document.getElementById('activityFeed');
-      if (activity.length === 0) {
-        feed.innerHTML = '<div class="empty-state">AI will log activity here</div>';
-      } else {
-        feed.innerHTML = activity.map(a => `
-          <div class="activity-item">
-            <div class="activity-icon" style="background:rgba(0,255,136,0.1)">${a.role === 'ai' ? '🤖' : '📨'}</div>
-            <div>
-              <div class="activity-title">${a.role === 'ai' ? 'AI sent' : 'Seller replied'} — ${a.address}, ${a.city}</div>
-              <div class="activity-time">${new Date(a.created_at).toLocaleTimeString()}</div>
-            </div>
-          </div>
-        `).join('');
-      }
-
-      // Hot leads
-      const hot = leads.filter(l => l.status === 'hot');
-      const hotList = document.getElementById('hotLeadsList');
-      hotList.innerHTML = hot.length === 0 
-        ? '<div class="empty-state">No hot leads yet</div>'
-        : hot.map(l => `
-          <div class="conv-item" onclick="openLead(${l.id})">
-            <div class="conv-name">${l.name || l.address} <span class="conv-badge">HOT</span></div>
-            <div class="conv-preview">${l.address}, ${l.city}</div>
-          </div>
-        `).join('');
-
-    } catch(e) {
-      console.log('Dashboard load error:', e);
-    }
-  }
-
-  function openLead(id) {
-    showPage('conversations');
-    loadConversation(id);
-  }
-
-  // ─── CONVERSATIONS ────────────────────────────────────────────────
-  async function loadConversations() {
-    try {
-      const leads = await fetch(`${API_BASE}/api/leads`).then(r => r.json());
-      const list = document.getElementById('convList');
-      if (leads.length === 0) {
-        list.innerHTML = '<div class="empty-state">No conversations yet</div>';
-        return;
-      }
-      list.innerHTML = leads.map(l => `
-        <div class="conv-item ${currentLeadId === l.id ? 'active' : ''}" onclick="loadConversation(${l.id})">
-          <div class="conv-name">${l.name || 'Unknown'} ${l.status === 'hot' ? '<span class="conv-badge">HOT</span>' : ''}</div>
-          <div class="conv-preview">${l.address}, ${l.city}</div>
+    statuses.forEach((s, i) => {
+      const filtered = leads.filter(l => l.status === s);
+      document.getElementById(countIds[i]).textContent = filtered.length;
+      const col = document.getElementById(colIds[i]);
+      if (!filtered.length) { col.innerHTML = '<div class="empty-state">None</div>'; return; }
+      col.innerHTML = filtered.slice(0,5).map(l => `
+        <div class="lead-card" onclick="openLead(${l.id})">
+          <div class="lead-name">${l.name || 'Unknown Owner'}</div>
+          <div class="lead-address">${l.address}</div>
+          ${l.phone ? `<div class="lead-phone">📱 ${l.phone} ${l.dnc ? '<span class="dnc-badge">DNC</span>' : ''}</div>` : '<div style="font-size:10px;color:#44445a;">No phone yet</div>'}
         </div>
       `).join('');
-    } catch(e) {}
-  }
+    });
 
-  async function loadConversation(leadId) {
-    currentLeadId = leadId;
-    try {
-      const [lead, convos] = await Promise.all([
-        fetch(`${API_BASE}/api/leads`).then(r => r.json()).then(leads => leads.find(l => l.id === leadId)),
-        fetch(`${API_BASE}/api/conversations/${leadId}`).then(r => r.json())
-      ]);
-
-      document.getElementById('chatHeader').innerHTML = `
+    const feed = document.getElementById('activityFeed');
+    feed.innerHTML = activity.length ? activity.map(a => `
+      <div class="activity-item">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,255,136,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">${a.role === 'ai' ? '🤖' : '📨'}</div>
         <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;">${lead?.name || 'Unknown'} — ${lead?.address}</div>
-          <div style="font-size:10px;color:var(--accent);">🤖 AI handling — ${lead?.status || 'new'}</div>
+          <div style="font-size:11px;">${a.role === 'ai' ? 'AI sent message' : 'Seller replied'} — ${a.address}</div>
+          <div style="font-size:10px;color:#44445a;">${new Date(a.created_at).toLocaleTimeString()}</div>
         </div>
-        <button class="btn btn-primary" style="margin-left:auto;font-size:11px;" onclick="scheduleCall()">Schedule Call</button>
-      `;
+      </div>
+    `).join('') : '<div class="empty-state">Activity will appear here</div>';
+  } catch(e) { console.log('Dashboard error:', e); }
+}
 
-      const msgs = document.getElementById('chatMessages');
-      msgs.innerHTML = convos.map(c => `
-        <div class="msg ${c.role === 'ai' ? 'ai' : 'seller'}">
-          <div class="msg-bubble">${c.message}</div>
-          <div class="msg-meta">${c.role === 'ai' ? '🤖 AI' : 'Seller'} · ${new Date(c.created_at).toLocaleTimeString()}</div>
-        </div>
-      `).join('');
-      msgs.scrollTop = msgs.scrollHeight;
+// CSV UPLOAD
+function handleCSV() {
+  const file = document.getElementById('csvFile').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const text = e.target.result;
+    const lines = text.split('\n');
+    const rawHeaders = lines[0].split(',');
+    const headers = rawHeaders.map(h => h.trim().toLowerCase().replace(/"/g,''));
+    
+    document.getElementById('uploadStatus').textContent = `Parsing ${lines.length - 1} leads...`;
+    
+    const leads = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const values = [];
+      let cur = '', inQ = false;
+      for (let c of lines[i]) {
+        if (c === '"') inQ = !inQ;
+        else if (c === ',' && !inQ) { values.push(cur.trim().replace(/"/g,'')); cur = ''; }
+        else cur += c;
+      }
+      values.push(cur.trim().replace(/"/g,''));
+      
+      const row = {};
+      headers.forEach((h, idx) => row[h] = values[idx] || '');
+      
+      const address = row['address'] || row['property address'] || row['street address'] || '';
+      const city = row['city'] || row['property city'] || 'Tampa';
+      const state = row['state'] || 'FL';
+      const zip = row['zip'] || row['zipcode'] || '';
+      const name = (row['name'] || (row['first name'] ? (row['first name'] + ' ' + (row['last name']||'')).trim() : '') || row['owner name'] || '').trim();
+      const sqft = parseFloat(row['living sq'] || row['sqft'] || row['square feet'] || row['living sqft'] || 0) || null;
+      
+      if (address) leads.push({ address, city, state, zip, name, sqft });
+    }
 
-      document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
-    } catch(e) {}
-  }
+    if (!leads.length) { document.getElementById('uploadStatus').textContent = '❌ No valid leads found in CSV'; return; }
 
-  async function sendTestReply() {
-    if (!currentLeadId) return;
-    const input = document.getElementById('replyInput');
-    const message = input.value.trim();
-    if (!message) return;
-    input.value = '';
+    document.getElementById('uploadStatus').textContent = `Uploading ${leads.length} leads...`;
+
     try {
-      const result = await fetch(`${API_BASE}/api/leads/${currentLeadId}/reply`, {
+      const result = await fetch(`${API}/api/leads/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ leads })
       }).then(r => r.json());
-      loadConversation(currentLeadId);
-      if (result.reply) showNotif('🤖 AI Responded', result.reply.substring(0, 60) + '...');
-    } catch(e) {}
-  }
 
-  function scheduleCall() {
-    showNotif('📅 Call Scheduled', 'Lead added to your calendar');
-  }
+      importedLeadIds = result.ids || [];
+      document.getElementById('uploadStatus').textContent = `✅ ${result.imported} leads imported successfully`;
+      document.getElementById('skiptraceSection').style.display = 'block';
+      document.getElementById('skiptraceInfo').textContent = `${result.imported} leads ready. Click below to skip trace and DNC scrub all leads through Tracerfy.`;
+      
+      // Show imported leads table
+      loadImportedLeads();
+      showNotif('✅ Leads Imported', `${result.imported} leads added to pipeline`);
+    } catch(err) {
+      document.getElementById('uploadStatus').textContent = '❌ Upload failed: ' + err.message;
+    }
+  };
+  reader.readAsText(file);
+}
 
-  // ─── BUYERS ───────────────────────────────────────────────────────
-  async function loadBuyers() {
-    try {
-      const buyers = await fetch(`${API_BASE}/api/buyers`).then(r => r.json());
-      document.getElementById('buyerCount').textContent = buyers.length + ' Total';
-      const tbody = document.getElementById('buyersTable');
-      tbody.innerHTML = buyers.length === 0
-        ? '<tr><td colspan="6" style="text-align:center;color:#44445a;padding:30px;">No buyers yet</td></tr>'
-        : buyers.map(b => `
-          <tr>
-            <td><strong>${b.name}</strong></td>
-            <td>${b.phone || '—'}</td>
-            <td>${b.markets || '—'}</td>
-            <td>$${(b.min_price||0).toLocaleString()} — $${(b.max_price||0).toLocaleString()}</td>
-            <td>${b.close_days || '—'} days</td>
-            <td>${b.deals_done || 0}</td>
-          </tr>
-        `).join('');
-    } catch(e) {}
-  }
+async function loadImportedLeads() {
+  try {
+    const leads = await fetch(`${API}/api/leads`).then(r => r.json());
+    const section = document.getElementById('importedLeadsSection');
+    section.style.display = 'block';
+    document.getElementById('importedCount').textContent = `(${leads.length} total)`;
+    const tbody = document.getElementById('importedLeadsTable');
+    tbody.innerHTML = leads.slice(0, 100).map(l => `
+      <tr>
+        <td>${l.address}</td>
+        <td>${l.city}</td>
+        <td>${l.name || '—'}</td>
+        <td>${l.phone || '<span style="color:#44445a;">Pending</span>'}</td>
+        <td>${l.dnc ? '<span class="dnc-badge">DNC</span>' : '—'}</td>
+        <td><span style="font-size:10px;color:var(--accent2);">${l.status}</span></td>
+      </tr>
+    `).join('');
+  } catch(e) {}
+}
 
-  function showAddBuyer() {
-    const name = prompt('Buyer name:');
-    if (!name) return;
-    const phone = prompt('Phone number:');
-    const markets = prompt('Markets (e.g. Tampa, Orlando):');
-    const min = prompt('Min price (e.g. 50000):');
-    const max = prompt('Max price (e.g. 300000):');
-    const days = prompt('Days to close (e.g. 14):');
-    fetch(`${API_BASE}/api/buyers`, {
+async function runSkipTrace() {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Submitting to Tracerfy...';
+  document.getElementById('skiptraceStatus').textContent = 'Sending leads to Tracerfy for skip trace and DNC scrub...';
+  
+  try {
+    const leads = await fetch(`${API}/api/leads`).then(r => r.json());
+    const ids = leads.map(l => l.id);
+    
+    const result = await fetch(`${API}/api/leads/skiptrace`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, markets, min_price: min, max_price: max, close_days: days })
-    }).then(() => { loadBuyers(); showNotif('✅ Buyer Added', name + ' added to your list'); });
+      body: JSON.stringify({ lead_ids: ids })
+    }).then(r => r.json());
+
+    if (result.success) {
+      document.getElementById('skiptraceStatus').textContent = '✅ ' + result.message;
+      showNotif('🔍 Skip Trace Submitted', 'Tracerfy is processing your leads. Phone numbers will appear automatically when complete.');
+      btn.textContent = '✅ Submitted to Tracerfy';
+    } else {
+      document.getElementById('skiptraceStatus').textContent = '❌ Error: ' + (result.error || 'Unknown error');
+      btn.disabled = false;
+      btn.textContent = '🔍 Skip Trace All Leads + DNC Scrub';
+    }
+  } catch(err) {
+    document.getElementById('skiptraceStatus').textContent = '❌ ' + err.message;
+    btn.disabled = false;
+    btn.textContent = '🔍 Skip Trace All Leads + DNC Scrub';
   }
+}
 
-  // ─── DEALS ────────────────────────────────────────────────────────
-  async function loadDeals() {
-    try {
-      const stats = await fetch(`${API_BASE}/api/stats`).then(r => r.json());
-      document.getElementById('d-closed').textContent = stats.closedDeals || 0;
-      document.getElementById('d-earned').textContent = '$' + ((stats.totalEarned || 0)).toLocaleString();
-      document.getElementById('d-pipeline').textContent = stats.underContract || 0;
-    } catch(e) {}
-  }
+function openLead(id) {
+  showPage('conversations', document.querySelector('.nav-item:nth-child(3)'));
+  loadConversation(id);
+}
 
-  // ─── CALCULATOR ───────────────────────────────────────────────────
-  function setCond(c) {
-    calcCondition = c;
-    document.getElementById('r-livable').classList.toggle('selected', c === 'livable');
-    document.getElementById('r-remodel').classList.toggle('selected', c === 'remodel');
-    calc();
-  }
+async function loadConversations() {
+  try {
+    const leads = await fetch(`${API}/api/leads`).then(r => r.json());
+    const list = document.getElementById('convList');
+    if (!leads.length) { list.innerHTML = '<div class="empty-state">Upload leads to start</div>'; return; }
+    list.innerHTML = leads.map(l => `
+      <div class="conv-item ${currentLeadId === l.id ? 'active' : ''}" onclick="loadConversation(${l.id})">
+        <div class="conv-name">${l.name || 'Unknown'} ${l.status === 'hot' ? '<span class="conv-badge">HOT</span>' : ''}</div>
+        <div class="conv-preview">${l.address}</div>
+        ${l.phone ? `<div style="font-size:10px;color:var(--accent);margin-top:2px;">📱 ${l.phone}</div>` : ''}
+      </div>
+    `).join('');
+  } catch(e) {}
+}
 
-  function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
+async function loadConversation(id) {
+  currentLeadId = id;
+  try {
+    const leads = await fetch(`${API}/api/leads`).then(r => r.json());
+    const lead = leads.find(l => l.id === id);
+    const convos = await fetch(`${API}/api/conversations/${id}`).then(r => r.json());
+    
+    document.getElementById('chatHeader').innerHTML = `
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:600;font-size:14px;">${lead?.name || 'Unknown'} — ${lead?.address}</div>
+        <div style="font-size:10px;color:var(--accent);">🤖 AI handling · ${lead?.status} ${lead?.phone ? '· 📱 ' + lead.phone : ''}</div>
+      </div>
+      <button class="btn btn-primary" style="font-size:11px;margin-left:auto;" onclick="scheduleCall()">📅 Schedule Call</button>
+    `;
+    
+    const msgs = document.getElementById('chatMessages');
+    msgs.innerHTML = convos.length ? convos.map(c => `
+      <div class="msg ${c.role === 'ai' ? 'ai' : 'seller'}">
+        <div class="msg-bubble">${c.message}</div>
+        <div class="msg-meta">${c.role === 'ai' ? '🤖 AI' : 'Seller'} · ${new Date(c.created_at).toLocaleTimeString()}</div>
+      </div>
+    `).join('') : '<div class="empty-state">No messages yet</div>';
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) {}
+}
 
-  function calc() {
-    const address = document.getElementById('cAddress').value;
-    const arv = parseFloat(document.getElementById('cARV').value) || 0;
-    const sqft = parseFloat(document.getElementById('cSqft').value) || 0;
-    const rate = calcCondition === 'livable' ? 40 : 50;
-    const rehab = sqft * rate;
-    const rule70 = arv * 0.7;
-    const offer = rule70 - rehab - 20000;
-    const min = rule70 - rehab - 15000;
-    document.getElementById('r-address').textContent = address || 'Enter address above';
-    document.getElementById('r-arv').textContent = arv ? fmt(arv) : '—';
-    document.getElementById('r-70').textContent = arv ? fmt(rule70) : '—';
-    document.getElementById('r-rehab').textContent = sqft ? `${fmt(rehab)} (${sqft} sqft × $${rate})` : '—';
-    document.getElementById('r-offer').textContent = offer > 0 ? fmt(offer) : 'Deal too thin';
-    document.getElementById('r-min').textContent = min > 0 ? fmt(min) : 'No margin';
-  }
+async function sendReply() {
+  if (!currentLeadId) return;
+  const input = document.getElementById('replyInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  try {
+    const result = await fetch(`${API}/api/leads/${currentLeadId}/reply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg })
+    }).then(r => r.json());
+    loadConversation(currentLeadId);
+    if (result.reply) showNotif('🤖 AI Responded', result.reply.substring(0, 80) + '...');
+  } catch(e) {}
+}
 
-  // ─── SCAN ─────────────────────────────────────────────────────────
-  async function triggerScan() {
-    showNotif('🔍 Scanning', 'Checking Florida Reddit markets...');
-    try {
-      await fetch(`${API_BASE}/api/scan`, { method: 'POST' });
-    } catch(e) {}
-  }
+function scheduleCall() { showNotif('📅 Call Scheduled', 'Added to your calendar'); }
 
-  // ─── CSV UPLOAD ───────────────────────────────────────────────────
-  function handleCSV() {
-    const file = document.getElementById('csvFile').files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      const text = e.target.result;
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
-      let imported = 0;
-      let skipped = 0;
-      let failed = 0;
+async function loadBuyers() {
+  try {
+    const buyers = await fetch(`${API}/api/buyers`).then(r => r.json());
+    document.getElementById('buyerCount').textContent = `(${buyers.length} total)`;
+    const tbody = document.getElementById('buyersTable');
+    tbody.innerHTML = buyers.length ? buyers.map(b => `
+      <tr>
+        <td><strong>${b.name}</strong></td>
+        <td>${b.phone||'—'}</td>
+        <td>${b.markets||'—'}</td>
+        <td>$${(b.min_price||0).toLocaleString()} — $${(b.max_price||0).toLocaleString()}</td>
+        <td>${b.close_days||'—'} days</td>
+        <td>${b.deals_done||0}</td>
+      </tr>
+    `).join('') : '<tr><td colspan="6" style="text-align:center;color:#44445a;padding:30px;">No buyers yet</td></tr>';
+  } catch(e) {}
+}
 
-      document.getElementById('uploadStatus').textContent = `Processing ${lines.length - 1} leads...`;
+function addBuyer() {
+  const name = prompt('Buyer name:'); if (!name) return;
+  const phone = prompt('Phone:');
+  const markets = prompt('Markets (e.g. Tampa, Orlando):');
+  const min = prompt('Min price:');
+  const max = prompt('Max price:');
+  const days = prompt('Days to close:');
+  fetch(`${API}/api/buyers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, phone, markets, min_price: min, max_price: max, close_days: days })
+  }).then(() => { loadBuyers(); showNotif('✅ Buyer Added', name); });
+}
 
-      for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        
-        // Handle CSV values that may contain commas inside quotes
-        const values = [];
-        let current = '';
-        let inQuotes = false;
-        for (let c of lines[i]) {
-          if (c === '"') inQuotes = !inQuotes;
-          else if (c === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
-          else current += c;
-        }
-        values.push(current.trim());
+async function loadDeals() {
+  try {
+    const stats = await fetch(`${API}/api/stats`).then(r => r.json());
+    document.getElementById('d-closed').textContent = stats.closedDeals || 0;
+    document.getElementById('d-earned').textContent = '$' + (stats.totalEarned||0).toLocaleString();
+    document.getElementById('d-pipeline').textContent = stats.underContract || 0;
+  } catch(e) {}
+}
 
-        const row = {};
-        headers.forEach((h, idx) => row[h] = (values[idx] || '').replace(/"/g,'').trim());
+// CALCULATOR
+function setCond(c) {
+  calcCond = c;
+  document.getElementById('r-livable').classList.toggle('selected', c === 'livable');
+  document.getElementById('r-remodel').classList.toggle('selected', c === 'remodel');
+  calc();
+}
 
-        // Match Propwire's exact column names
-        const address = row['address'] || row['property address'] || row['street address'] || '';
-        const city = row['city'] || row['property city'] || 'Florida';
-        const state = row['state'] || 'FL';
-        const zip = row['zip'] || row['zipcode'] || row['zip code'] || '';
-        const phone = row['phone'] || row['phone number'] || row['mobile'] || row['cell phone'] || '';
-        const name = (row['name'] || (row['first name'] ? row['first name'] + ' ' + (row['last name']||'') : '') || row['owner name'] || row['owner'] || '').trim();
-        const sqft = parseFloat(row['living sq'] || row['sqft'] || row['square feet'] || row['living sqft'] || row['sq ft'] || 0) || null;
+function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
 
-        if (!address) { failed++; continue; }
+function calc() {
+  const address = document.getElementById('cAddress').value;
+  const arv = parseFloat(document.getElementById('cARV').value) || 0;
+  const sqft = parseFloat(document.getElementById('cSqft').value) || 0;
+  const rate = calcCond === 'livable' ? 40 : 50;
+  const rehab = sqft * rate;
+  const rule70 = arv * 0.7;
+  const offer = rule70 - rehab - 20000;
+  const min = rule70 - rehab - 15000;
+  document.getElementById('r-address').textContent = address || 'Enter address above';
+  document.getElementById('r-arv').textContent = arv ? fmt(arv) : '—';
+  document.getElementById('r-70').textContent = arv ? fmt(rule70) : '—';
+  document.getElementById('r-rehab').textContent = sqft ? `${fmt(rehab)} (${sqft} sqft × $${rate})` : '—';
+  document.getElementById('r-offer').textContent = offer > 0 ? fmt(offer) : 'Deal too thin';
+  document.getElementById('r-min').textContent = min > 0 ? fmt(min) : 'No margin';
+}
 
-        try {
-          const result = await fetch(`${API_BASE}/api/leads/import`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ address, city, state, zip, phone, name, sqft, source: 'propwire' })
-          }).then(r => r.json());
-          
-          if (result.skipped) skipped++;
-          else imported++;
-          
-          document.getElementById('uploadStatus').textContent = `Imported ${imported}, skipped ${skipped} duplicates...`;
-        } catch(err) { failed++; }
-      }
-
-      document.getElementById('uploadStatus').textContent = `✅ Done! ${imported} leads imported. ${skipped} duplicates skipped. ${failed} errors.`;
-      showNotif('✅ Import Complete', `${imported} leads added to your pipeline`);
-      loadDashboard();
-    };
-    reader.readAsText(file);
-  }
-
-  // ─── INIT ─────────────────────────────────────────────────────────
-  loadDashboard();
-  setInterval(loadDashboard, 30000);
+// INIT
+loadDashboard();
+setInterval(loadDashboard, 30000);
 </script>
 </body>
 </html>
