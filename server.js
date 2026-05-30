@@ -13,7 +13,7 @@ const db = new Database('./dealflow.db');
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static('Public'));
 
 // ─── DATABASE SETUP ───────────────────────────────────────────────
 db.exec(`
