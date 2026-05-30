@@ -82,7 +82,7 @@ async function scrapeATTOM() {
   for (const city of cities) {
     try {
       const response = await axios.get('https://api.attomdata.com/propertyapi/v1.0.0/assessment/snapshot', {
-        headers: { 'apikey': apiKey, 'Accept': 'application/json' },
+        headers: { 'APIKey': apiKey, 'Accept': 'application/json' },
         params: {
           city: city,
           state: 'FL',
