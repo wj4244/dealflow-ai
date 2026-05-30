@@ -202,8 +202,9 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
           <div class="section-header">Step 2 — Skip Trace & DNC Scrub</div>
           <div style="padding:20px;">
             <div style="font-size:12px;color:#888;margin-bottom:16px;" id="skiptraceInfo">Leads imported. Click below to skip trace all leads through Tracerfy and scrub against DNC list.</div>
-            <div style="display:flex;gap:10px;">
-              <button class="btn btn-primary" style="flex:1;padding:14px;" onclick="runSkipTrace()">🔍 Skip Trace All Leads + DNC Scrub</button>
+            <div style="display:flex;gap:10px;flex-direction:column;">
+              <button class="btn btn-primary" style="padding:14px;" onclick="downloadForTracerfy()">⬇️ Download CSV for Tracerfy</button>
+              <div style="font-size:10px;color:#44445a;text-align:center;">Then drag and drop this file onto tracerfy.com to skip trace</div>
             </div>
             <div id="skiptraceStatus" style="font-size:11px;color:var(--accent);margin-top:12px;min-height:20px;text-align:center;"></div>
           </div>
@@ -477,6 +478,33 @@ async function loadImportedLeads() {
       </tr>
     `).join('');
   } catch(e) {}
+}
+
+async function downloadForTracerfy() {
+  try {
+    const leads = await fetch(`${API}/api/leads`).then(r => r.json());
+    if (!leads.length) { showNotif('❌ No leads', 'Upload leads first'); return; }
+    
+    let csv = 'first_name,last_name,address,city,state,zip,mail_address,mail_city,mail_state\n';
+    for (const l of leads) {
+      const addr = (l.address||'').replace(/,/g,' ');
+      const city = (l.city||'FL').replace(/,/g,' ');
+      const state = l.state||'FL';
+      const zip = l.zip||'';
+      csv += `,,${addr},${city},${state},${zip},${addr},${city},${state}\n`;
+    }
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'leads-for-tracerfy.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showNotif('✅ Downloaded', 'Upload leads-for-tracerfy.csv to tracerfy.com');
+  } catch(e) {
+    showNotif('❌ Error', e.message);
+  }
 }
 
 async function runSkipTrace() {
