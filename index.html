@@ -127,6 +127,7 @@
   </div>
   <nav class="nav">
     <div class="nav-item active" onclick="showPage('dashboard')"><span>⚡</span> Dashboard</div>
+    <div class="nav-item" onclick="showPage('upload')"><span>📤</span> Upload Leads</div>
     <div class="nav-item" onclick="showPage('conversations')"><span>💬</span> Conversations</div>
     <div class="nav-item" onclick="showPage('buyers')"><span>💰</span> Cash Buyers</div>
     <div class="nav-item" onclick="showPage('deals')"><span>📋</span> Deals</div>
@@ -252,6 +253,31 @@
           <thead><tr><th>Property</th><th>ARV</th><th>Purchase Price</th><th>Wholesale Fee</th><th>Status</th></tr></thead>
           <tbody id="dealsTable"><tr><td colspan="5" style="text-align:center;color:#44445a;padding:30px;">No deals yet</td></tr></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- UPLOAD LEADS -->
+    <div class="page" id="page-upload">
+      <div style="max-width:600px;">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;">Upload Leads from Propwire</div>
+        <div style="font-size:11px;color:#44445a;margin-bottom:24px;">Export your Propwire list as CSV and upload it here. AI will start working through them automatically.</div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:24px;margin-bottom:20px;">
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:16px;">How to export from Propwire:</div>
+          <div style="font-size:11px;color:#888;line-height:2;">
+            1. Go to Propwire and set your filters (distressed, pre-foreclosure, etc.)<br>
+            2. Select your leads<br>
+            3. Click Export → CSV<br>
+            4. Upload that CSV file below
+          </div>
+        </div>
+        <div style="background:var(--surface);border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;margin-bottom:16px;">
+          <div style="font-size:24px;margin-bottom:8px;">📂</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:8px;">Drop your CSV here</div>
+          <div style="font-size:11px;color:#44445a;margin-bottom:16px;">Supports any CSV with address, name, phone columns</div>
+          <input type="file" id="csvFile" accept=".csv" style="display:none;" onchange="handleCSV()"/>
+          <button class="btn btn-primary" onclick="document.getElementById('csvFile').click()" style="padding:12px 24px;">Choose CSV File</button>
+        </div>
+        <div id="uploadStatus" style="font-size:12px;color:var(--accent);padding:10px;min-height:20px;"></div>
       </div>
     </div>
 
@@ -561,9 +587,56 @@
     } catch(e) {}
   }
 
+  // ─── CSV UPLOAD ───────────────────────────────────────────────────
+  function handleCSV() {
+    const file = document.getElementById('csvFile').files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const text = e.target.result;
+      const lines = text.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
+      let imported = 0;
+      let failed = 0;
+
+      document.getElementById('uploadStatus').textContent = `Processing ${lines.length - 1} leads...`;
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const values = lines[i].split(',').map(v => v.trim().replace(/"/g,''));
+        const row = {};
+        headers.forEach((h, idx) => row[h] = values[idx] || '');
+
+        // Try to find address and other fields from common CSV column names
+        const address = row['address'] || row['property address'] || row['street'] || row['street address'] || values[0] || '';
+        const city = row['city'] || row['property city'] || 'Florida';
+        const phone = row['phone'] || row['phone number'] || row['mobile'] || row['cell'] || '';
+        const name = row['name'] || row['owner name'] || row['first name'] + ' ' + row['last name'] || '';
+        const sqft = parseFloat(row['sqft'] || row['square feet'] || row['square footage'] || 0) || null;
+
+        if (!address) { failed++; continue; }
+
+        try {
+          await fetch(`${API_BASE}/api/leads/import`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ address, city, phone, name, sqft, source: 'propwire' })
+          });
+          imported++;
+          document.getElementById('uploadStatus').textContent = `Imported ${imported} of ${lines.length - 1}...`;
+        } catch(err) { failed++; }
+      }
+
+      document.getElementById('uploadStatus').textContent = `Done! ${imported} leads imported. ${failed} skipped.`;
+      showNotif('✅ Import Complete', `${imported} leads added to your pipeline`);
+      loadDashboard();
+    };
+    reader.readAsText(file);
+  }
+
   // ─── INIT ─────────────────────────────────────────────────────────
   loadDashboard();
-  setInterval(loadDashboard, 30000); // refresh every 30 seconds
+  setInterval(loadDashboard, 30000);
 </script>
 </body>
 </html>
