@@ -110,18 +110,31 @@ async function skipTraceLeads(leadIds) {
   if (!leads.length) return { error: 'No leads found' };
 
   try {
-    // Submit batch to Tracerfy
-    const addresses = leads.map(l => ({
-      address: l.address,
-      city: l.city || 'Tampa',
-      state: l.state || 'FL',
-      zip: l.zip || ''
-    }));
+    // Build CSV content for Tracerfy batch upload
+    const csvLines = ['address,city,state,zip,first_name,last_name'];
+    for (const l of leads) {
+      const nameParts = (l.name || '').split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      csvLines.push(`"${l.address}","${l.city||'Tampa'}","${l.state||'FL'}","${l.zip||''}","${firstName}","${lastName}"`);
+    }
+    const csvContent = csvLines.join('\n');
+    
+    // Send as multipart form data
+    const FormData = require('form-data');
+    const form = new FormData();
+    form.append('csv_file', Buffer.from(csvContent), { filename: 'leads.csv', contentType: 'text/csv' });
+    form.append('address_column', 'address');
+    form.append('city_column', 'city');
+    form.append('state_column', 'state');
+    form.append('first_name_column', 'first_name');
+    form.append('last_name_column', 'last_name');
+    form.append('trace_type', 'normal');
 
     const response = await axios.post(
       'https://tracerfy.com/v1/api/trace/',
-      { addresses, trace_type: 'normal', webhook_url: `${process.env.APP_URL || 'https://dealflow-ai-production-51fa.up.railway.app'}/api/tracerfy/webhook` },
-      { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
+      form,
+      { headers: { 'Authorization': `Bearer ${apiKey}`, ...form.getHeaders() } }
     );
 
     console.log('Tracerfy batch submitted:', response.data);
