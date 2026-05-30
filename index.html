@@ -203,10 +203,26 @@ body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-
           <div style="padding:20px;">
             <div style="font-size:12px;color:#888;margin-bottom:16px;" id="skiptraceInfo">Leads imported. Click below to skip trace all leads through Tracerfy and scrub against DNC list.</div>
             <div style="display:flex;gap:10px;flex-direction:column;">
-              <button class="btn btn-primary" style="padding:14px;" onclick="downloadForTracerfy()">⬇️ Download CSV for Tracerfy</button>
-              <div style="font-size:10px;color:#44445a;text-align:center;">Then drag and drop this file onto tracerfy.com to skip trace</div>
+              <button class="btn btn-primary" style="padding:14px;" onclick="downloadForTracerfy()">⬇️ Step 2a — Download CSV for Tracerfy</button>
+              <div style="font-size:10px;color:#44445a;text-align:center;">Upload this file to tracerfy.com → wait for results email → come back here</div>
             </div>
             <div id="skiptraceStatus" style="font-size:11px;color:var(--accent);margin-top:12px;min-height:20px;text-align:center;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 3 - IMPORT TRACERFY RESULTS -->
+        <div class="section-card" style="margin-bottom:16px;">
+          <div class="section-header">Step 3 — Import Tracerfy Results</div>
+          <div style="padding:20px;">
+            <div style="font-size:11px;color:#888;margin-bottom:16px;">After Tracerfy emails you the results CSV, upload it here to populate phone numbers automatically.</div>
+            <div style="display:flex;gap:10px;">
+              <div style="flex:1;">
+                <input type="file" id="tracerfyResultsFile" accept=".csv" style="display:none;" onchange="importTracerfyResults()"/>
+                <button class="btn btn-primary" style="width:100%;padding:12px;" onclick="document.getElementById('tracerfyResultsFile').click()">📱 Import Tracerfy Results CSV</button>
+              </div>
+              <button class="btn btn-danger" style="padding:12px 20px;" onclick="clearAllLeads()">🗑️ Clear All Leads</button>
+            </div>
+            <div id="importTracerfyStatus" style="font-size:11px;color:var(--accent);margin-top:10px;min-height:20px;"></div>
           </div>
         </div>
 
@@ -478,6 +494,63 @@ async function loadImportedLeads() {
       </tr>
     `).join('');
   } catch(e) {}
+}
+
+async function clearAllLeads() {
+  if (!confirm('Are you sure you want to delete all leads? This cannot be undone.')) return;
+  try {
+    await fetch(`${API}/api/leads/all`, { method: 'DELETE' });
+    showNotif('🗑️ Cleared', 'All leads deleted');
+    document.getElementById('importedLeadsSection').style.display = 'none';
+    document.getElementById('skiptraceSection').style.display = 'none';
+    document.getElementById('uploadStatus').textContent = '';
+    loadDashboard();
+  } catch(e) { showNotif('❌ Error', e.message); }
+}
+
+async function importTracerfyResults() {
+  const file = document.getElementById('tracerfyResultsFile').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const text = e.target.result;
+    const lines = text.split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
+    
+    document.getElementById('importTracerfyStatus').textContent = 'Processing results...';
+    
+    const results = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const values = lines[i].split(',').map(v => v.trim().replace(/"/g,''));
+      const row = {};
+      headers.forEach((h, idx) => row[h] = values[idx] || '');
+      
+      const address = row['address'] || row['property address'] || row['mailing address'] || '';
+      const name = ((row['first name']||'') + ' ' + (row['last name']||'')).trim() || row['name'] || row['owner name'] || '';
+      const phone = row['phone 1'] || row['phone'] || row['mobile'] || row['cell'] || '';
+      const email = row['email 1'] || row['email'] || '';
+      const dnc = (row['dnc']||'').toLowerCase() === 'true' || (row['do not call']||'').toLowerCase() === 'yes';
+      
+      if (address || name) results.push({ address, name, phone, email, dnc });
+    }
+    
+    try {
+      const result = await fetch(`${API}/api/leads/import-tracerfy`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ results })
+      }).then(r => r.json());
+      
+      document.getElementById('importTracerfyStatus').textContent = `✅ Updated ${result.updated} leads with phone numbers`;
+      showNotif('✅ Results Imported', `${result.updated} leads now have phone numbers`);
+      loadImportedLeads();
+      loadDashboard();
+    } catch(err) {
+      document.getElementById('importTracerfyStatus').textContent = '❌ ' + err.message;
+    }
+  };
+  reader.readAsText(file);
 }
 
 async function downloadForTracerfy() {
