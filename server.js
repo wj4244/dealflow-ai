@@ -295,7 +295,7 @@ app.post('/api/leads/import-tracerfy', async (req, res) => {
       const addrPart = r.address.split(',')[0].trim();
       const lead = db.prepare("SELECT id FROM leads WHERE address LIKE ?").get(`%${addrPart}%`);
       if (lead) {
-        db.prepare('UPDATE leads SET name=COALESCE(NULLIF(?,''),name), phone=COALESCE(NULLIF(?,''),phone), email=COALESCE(NULLIF(?,''),email), dnc=?, skiptrace_done=1, updated_at=CURRENT_TIMESTAMP WHERE id=?')
+        db.prepare('UPDATE leads SET name=COALESCE(?,name), phone=COALESCE(?,phone), email=COALESCE(?,email), dnc=?, skiptrace_done=1, updated_at=CURRENT_TIMESTAMP WHERE id=?').run(r.name||null, r.phone||null, r.email||null, r.dnc?1:0, lead.id);
           .run(r.name||'', r.phone||'', r.email||'', r.dnc?1:0, lead.id);
         updated++;
       }
