@@ -597,37 +597,54 @@
       const lines = text.split('\n');
       const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
       let imported = 0;
+      let skipped = 0;
       let failed = 0;
 
       document.getElementById('uploadStatus').textContent = `Processing ${lines.length - 1} leads...`;
 
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
-        const values = lines[i].split(',').map(v => v.trim().replace(/"/g,''));
-        const row = {};
-        headers.forEach((h, idx) => row[h] = values[idx] || '');
+        
+        // Handle CSV values that may contain commas inside quotes
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+        for (let c of lines[i]) {
+          if (c === '"') inQuotes = !inQuotes;
+          else if (c === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
+          else current += c;
+        }
+        values.push(current.trim());
 
-        // Try to find address and other fields from common CSV column names
-        const address = row['address'] || row['property address'] || row['street'] || row['street address'] || values[0] || '';
+        const row = {};
+        headers.forEach((h, idx) => row[h] = (values[idx] || '').replace(/"/g,'').trim());
+
+        // Match Propwire's exact column names
+        const address = row['address'] || row['property address'] || row['street address'] || '';
         const city = row['city'] || row['property city'] || 'Florida';
-        const phone = row['phone'] || row['phone number'] || row['mobile'] || row['cell'] || '';
-        const name = row['name'] || row['owner name'] || row['first name'] + ' ' + row['last name'] || '';
-        const sqft = parseFloat(row['sqft'] || row['square feet'] || row['square footage'] || 0) || null;
+        const state = row['state'] || 'FL';
+        const zip = row['zip'] || row['zipcode'] || row['zip code'] || '';
+        const phone = row['phone'] || row['phone number'] || row['mobile'] || row['cell phone'] || '';
+        const name = (row['name'] || (row['first name'] ? row['first name'] + ' ' + (row['last name']||'') : '') || row['owner name'] || row['owner'] || '').trim();
+        const sqft = parseFloat(row['living sq'] || row['sqft'] || row['square feet'] || row['living sqft'] || row['sq ft'] || 0) || null;
 
         if (!address) { failed++; continue; }
 
         try {
-          await fetch(`${API_BASE}/api/leads/import`, {
+          const result = await fetch(`${API_BASE}/api/leads/import`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ address, city, phone, name, sqft, source: 'propwire' })
-          });
-          imported++;
-          document.getElementById('uploadStatus').textContent = `Imported ${imported} of ${lines.length - 1}...`;
+            body: JSON.stringify({ address, city, state, zip, phone, name, sqft, source: 'propwire' })
+          }).then(r => r.json());
+          
+          if (result.skipped) skipped++;
+          else imported++;
+          
+          document.getElementById('uploadStatus').textContent = `Imported ${imported}, skipped ${skipped} duplicates...`;
         } catch(err) { failed++; }
       }
 
-      document.getElementById('uploadStatus').textContent = `Done! ${imported} leads imported. ${failed} skipped.`;
+      document.getElementById('uploadStatus').textContent = `✅ Done! ${imported} leads imported. ${skipped} duplicates skipped. ${failed} errors.`;
       showNotif('✅ Import Complete', `${imported} leads added to your pipeline`);
       loadDashboard();
     };
