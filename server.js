@@ -130,6 +130,9 @@ async function skipTraceLeads(leadIds) {
     form.append('first_name_column', 'first_name');
     form.append('last_name_column', 'last_name');
     form.append('trace_type', 'normal');
+    form.append('mail_address_column', 'address');
+    form.append('mail_city_column', 'city');
+    form.append('mail_state_column', 'state');
 
     const response = await axios.post(
       'https://tracerfy.com/v1/api/trace/',
