@@ -202,6 +202,16 @@ app.get('/api/activity', (req, res) => {
   res.json(db.prepare('SELECT c.*, l.address, l.city FROM conversations c JOIN leads l ON c.lead_id = l.id ORDER BY c.created_at DESC LIMIT 20').all());
 });
 
+app.post('/api/leads/import', async (req, res) => {
+  const { address, city, phone, name, sqft, source } = req.body;
+  if (!address) return res.status(400).json({ error: 'Address required' });
+  const existing = db.prepare('SELECT id FROM leads WHERE address = ?').get(address);
+  if (existing) return res.json({ id: existing.id, skipped: true });
+  const lead = db.prepare(`INSERT INTO leads (address, city, phone, name, sqft, source, status) VALUES (?, ?, ?, ?, ?, ?, 'new')`).run(address, city || 'Florida', phone || null, name || null, sqft || null, source || 'csv');
+  await logOutreach(lead.lastInsertRowid, address, city || 'Florida', null);
+  res.json({ id: lead.lastInsertRowid });
+});
+
 app.post('/api/scan', async (req, res) => { scrapeReddit(); res.json({ message: 'Scanning Reddit for motivated sellers...' }); });
 
 cron.schedule('*/30 * * * *', () => { scrapeReddit(); });
