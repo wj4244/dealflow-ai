@@ -147,7 +147,7 @@
     <div style="display:flex;gap:10px;align-items:center;">
       <div class="scanning-indicator">
         <div class="scan-dot"></div><div class="scan-dot"></div><div class="scan-dot"></div>
-        <span>Scanning ATTOM Data</span>
+        <span>Scanning Reddit</span>
       </div>
       <button class="btn btn-ghost" onclick="triggerScan()">Scan Now</button>
     </div>
@@ -360,7 +360,7 @@
               <div class="lead-name">${l.name || 'Unknown'}</div>
               <div class="lead-address">${l.address}</div>
               <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                <span class="tag tag-blue">${l.source || 'ATTOM Data'}</span>
+                <span class="tag tag-blue">${l.source || 'Reddit'}</span>
                 ${l.condition ? `<span class="tag tag-orange">${l.condition}</span>` : ''}
               </div>
               ${l.offer_amount ? `<div style="margin-top:6px;font-size:11px;color:var(--accent)">Offer: $${l.offer_amount.toLocaleString()}</div>` : ''}
@@ -548,7 +548,7 @@
 
   // ─── SCAN ─────────────────────────────────────────────────────────
   async function triggerScan() {
-    showNotif('🔍 Scanning', 'Checking Florida ATTOM Data markets...');
+    showNotif('🔍 Scanning', 'Checking Florida Reddit markets...');
     try {
       await fetch(`${API_BASE}/api/scan`, { method: 'POST' });
     } catch(e) {}
@@ -560,3 +560,4 @@
 </script>
 </body>
 </html>
+  
