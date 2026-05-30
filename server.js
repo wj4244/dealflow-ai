@@ -119,7 +119,7 @@ async function skipTraceLeads(leadIds) {
     }));
 
     const response = await axios.post(
-      'https://tracerfy.com/api/trace/',
+      'https://tracerfy.com/v1/api/trace/',
       { addresses, trace_type: 'normal', webhook_url: `${process.env.APP_URL || 'https://dealflow-ai-production-51fa.up.railway.app'}/api/tracerfy/webhook` },
       { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
     );
@@ -138,7 +138,7 @@ async function dncScrub(phones) {
   if (!apiKey || !phones.length) return;
   try {
     const response = await axios.post(
-      'https://tracerfy.com/api/dnc/scrub/',
+      'https://tracerfy.com/v1/api/dnc/scrub/',
       { phones },
       { headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' } }
     );
