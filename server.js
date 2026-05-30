@@ -230,7 +230,7 @@ app.post('/api/tracerfy/webhook', async (req, res) => {
       if (address) {
         const lead = db.prepare('SELECT id FROM leads WHERE address LIKE ?').get(`%${address.split(',')[0]}%`);
         if (lead) {
-          db.prepare('UPDATE leads SET phone=COALESCE(NULLIF(?,''),phone), name=COALESCE(NULLIF(?,''),name), updated_at=CURRENT_TIMESTAMP WHERE id=?').run(phone, name, lead.id);
+          if (phone || name) { db.prepare('UPDATE leads SET phone=COALESCE(?,phone), name=COALESCE(?,name), updated_at=CURRENT_TIMESTAMP WHERE id=?').run(phone||null, name||null, lead.id); }
           console.log(`Updated lead ${lead.id} with skip trace data`);
         }
       }
