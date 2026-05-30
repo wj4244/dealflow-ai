@@ -262,6 +262,10 @@
         <div class="calc-card">
           <div class="section-header">Property Details</div>
           <div class="calc-body">
+            <div style="margin-bottom:14px;">
+              <div style="font-size:10px;color:#44445a;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;">Property Address</div>
+              <input class="input-field" type="text" id="cAddress" placeholder="123 Main St, Tampa, FL" />
+            </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
               <div>
                 <div style="font-size:10px;color:#44445a;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase;">ARV</div>
@@ -282,6 +286,7 @@
         <div class="calc-card">
           <div class="section-header">Your Offer</div>
           <div class="calc-body">
+            <div class="calc-row"><span class="calc-label">Property</span><span class="calc-val" id="r-address" style="font-size:11px;color:#888;">Enter address above</span></div>
             <div class="calc-row"><span class="calc-label">ARV</span><span class="calc-val" id="r-arv">—</span></div>
             <div class="calc-row"><span class="calc-label">× 70% Rule</span><span class="calc-val" id="r-70">—</span></div>
             <div class="calc-row"><span class="calc-label">− Rehab Cost</span><span class="calc-val" id="r-rehab">—</span></div>
@@ -532,6 +537,7 @@
   function fmt(n) { return '$' + Math.round(n).toLocaleString(); }
 
   function calc() {
+    const address = document.getElementById('cAddress').value;
     const arv = parseFloat(document.getElementById('cARV').value) || 0;
     const sqft = parseFloat(document.getElementById('cSqft').value) || 0;
     const rate = calcCondition === 'livable' ? 40 : 50;
@@ -539,6 +545,7 @@
     const rule70 = arv * 0.7;
     const offer = rule70 - rehab - 20000;
     const min = rule70 - rehab - 15000;
+    document.getElementById('r-address').textContent = address || 'Enter address above';
     document.getElementById('r-arv').textContent = arv ? fmt(arv) : '—';
     document.getElementById('r-70').textContent = arv ? fmt(rule70) : '—';
     document.getElementById('r-rehab').textContent = sqft ? `${fmt(rehab)} (${sqft} sqft × $${rate})` : '—';
@@ -560,4 +567,3 @@
 </script>
 </body>
 </html>
-  
