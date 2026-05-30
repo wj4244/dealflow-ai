@@ -527,9 +527,9 @@ async function importTracerfyResults() {
       headers.forEach((h, idx) => row[h] = values[idx] || '');
       
       const address = row['address'] || row['property address'] || row['mailing address'] || '';
-      const name = ((row['first name']||'') + ' ' + (row['last name']||'')).trim() || row['name'] || row['owner name'] || '';
-      const phone = row['phone 1'] || row['phone'] || row['mobile'] || row['cell'] || '';
-      const email = row['email 1'] || row['email'] || '';
+      const name = ((row['first_name']||row['first name']||'') + ' ' + (row['last_name']||row['last name']||'')).trim() || row['name'] || row['owner name'] || '';
+      const phone = row['primary_phone'] || row['mobile-1'] || row['phone 1'] || row['phone'] || row['mobile'] || '';
+      const email = row['email-1'] || row['email 1'] || row['email'] || '';
       const dnc = (row['dnc']||'').toLowerCase() === 'true' || (row['do not call']||'').toLowerCase() === 'yes';
       
       if (address || name) results.push({ address, name, phone, email, dnc });
