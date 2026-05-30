@@ -292,10 +292,12 @@ app.post('/api/leads/import-tracerfy', async (req, res) => {
     let updated = 0;
     for (const r of results) {
       if (!r.address) continue;
-      const addrPart = r.address.split(',')[0].trim();
-      const lead = db.prepare("SELECT id FROM leads WHERE address LIKE ?").get(`%${addrPart}%`);
+      if (!r.address) continue;
+      const addrPart = r.address.trim().toUpperCase();
+      const streetNum = addrPart.split(' ')[0];
+      const lead = db.prepare("SELECT id FROM leads WHERE UPPER(address) LIKE ? OR UPPER(address) LIKE ?").get(`%${addrPart}%`, `${streetNum}%`);
       if (lead) {
-        db.prepare('UPDATE leads SET name=COALESCE(?,name), phone=COALESCE(?,phone), email=COALESCE(?,email), dnc=?, skiptrace_done=1, updated_at=CURRENT_TIMESTAMP WHERE id=?').run(r.name||null, r.phone||null, r.email||null, r.dnc?1:0, lead.id);
+        db.prepare('UPDATE leads SET name=COALESCE(?,name), phone=COALESCE(?,phone), email=COALESCE(?,email), dnc=?, skiptrace_done=1, updated_at=CURRENT_TIMESTAMP WHERE id=?').run(r.name||null, r.phone||null, r.email||null, r.dnc ? 1 : 0, lead.id);
         updated++;
       }
     }
